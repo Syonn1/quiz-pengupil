@@ -1,11 +1,11 @@
 import os
 import logging
+import requests
+import time
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import time
 
 # Konfigurasi Logging
 LOG_DIR = "test-results"
@@ -16,18 +16,30 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
-# Konfigurasi Chrome WebDriver untuk CI/CD di GitHub Actions
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument("--headless")  # Mode headless (tanpa UI)
-chrome_options.add_argument("--no-sandbox")  # Dibutuhkan agar berjalan di GitHub Actions
-chrome_options.add_argument("--disable-dev-shm-usage")  # Mencegah masalah shared memory di Linux
-chrome_options.add_argument("--disable-gpu")  # Tidak perlu GPU di server CI/CD
+# Fungsi untuk cek apakah server sudah aktif
+def wait_for_server(url, timeout=30):
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                print("✅ Server is up and running!")
+                return True
+        except requests.exceptions.ConnectionError:
+            print("⏳ Waiting for server to start...")
+        time.sleep(5)
+    raise RuntimeError("❌ Server failed to start!")
 
-# Set up WebDriver dengan konfigurasi yang sudah diperbaiki
-driver = webdriver.Chrome(options=chrome_options)
-
-# Base URL untuk sistem yang diuji
+# Cek server sebelum Selenium berjalan
 BASE_URL = "http://127.0.0.1:8000/"
+wait_for_server(BASE_URL)
+
+# Set up WebDriver
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+driver = webdriver.Chrome(options=chrome_options)
 
 # List untuk menyimpan hasil test
 test_results = []
@@ -52,8 +64,8 @@ def run_test(test_function):
 
 def test_login_valid():
     driver.get(BASE_URL + "login.php")
-    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, "username"))).send_keys("irul")
-    driver.find_element(By.ID, "InputPassword").send_keys("$2y$10$D9yc9Mt0t8niCNO9di8ejOUPib46suwHghqFnJRKQJ3Z6uwRDxfw.")
+    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, "username"))).send_keys("testuser")
+    driver.find_element(By.ID, "InputPassword").send_keys("Test@123")
     driver.find_element(By.NAME, "submit").click()
 
     time.sleep(2)
