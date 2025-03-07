@@ -25,9 +25,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         
-      - name: Set up MySQL Database
+      - name: Wait for MySQL
         run: |
-          sudo apt-get install -y mysql-client
+          until mysqladmin ping -h "127.0.0.1" --silent; do
+            echo "Waiting for database connection..."
+            sleep 2
+          done
+
+      - name: Import database
+        env:
+          MYSQL_PWD: root
+        run: |
           mysql -h 127.0.0.1 -u root quiz_pengupil < db/quiz_pengupil.sql
 
       - name: Set up Python
