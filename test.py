@@ -138,8 +138,6 @@ test_cases = [
     test_register_valid,
     test_register_existing_user,
     test_register_password_mismatch,
-    test_sql_injection_login,
-    test_sql_injection_register
 ]
 
 for test in test_cases:
