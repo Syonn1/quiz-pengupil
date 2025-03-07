@@ -2,10 +2,14 @@ import os
 import logging
 import requests
 import time
+import chromedriver_autoinstaller
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
+# Install ChromeDriver yang sesuai dengan versi Google Chrome
+chromedriver_autoinstaller.install()
 
 # Konfigurasi Logging
 LOG_DIR = "test-results"
@@ -36,10 +40,13 @@ wait_for_server(BASE_URL)
 
 # Set up WebDriver
 chrome_options = webdriver.ChromeOptions()
+chrome_options.binary_location = "/usr/bin/google-chrome"
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
+
 driver = webdriver.Chrome(options=chrome_options)
+driver.implicitly_wait(10)
 
 # List untuk menyimpan hasil test
 test_results = []
