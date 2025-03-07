@@ -52,8 +52,8 @@ def run_test(test_function):
 
 def test_login_valid():
     driver.get(BASE_URL + "login.php")
-    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, "username"))).send_keys("testuser")
-    driver.find_element(By.ID, "InputPassword").send_keys("Test@123")
+    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, "username"))).send_keys("irul")
+    driver.find_element(By.ID, "InputPassword").send_keys("$2y$10$D9yc9Mt0t8niCNO9di8ejOUPib46suwHghqFnJRKQJ3Z6uwRDxfw.")
     driver.find_element(By.NAME, "submit").click()
 
     time.sleep(2)
