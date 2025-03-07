@@ -42,5 +42,11 @@ jobs:
           unzip chromedriver_linux64.zip
           sudo mv chromedriver /usr/local/bin/
 
-      - name: Run Selenium Tests
-        run: python selenium_login_test.py
+      - name: Run valid login
+        run: python test_valid_login.py
+
+      - name: Run invalid login
+        run: python test_invalid_login.py
+
+      - name: Run empty
+        run: test_empty_login.py
