@@ -1,4 +1,4 @@
-name: Selenium Tests
+name: Selenium Test CI/CD
 
 on:
   push:
@@ -9,51 +9,48 @@ on:
       - main
 
 jobs:
-  test:
+  selenium-test:
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: quiz_pengupil
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        
-      - name: Wait for MySQL
-        run: |
-          until mysqladmin ping -h "127.0.0.1" --silent; do
-            echo "Waiting for database connection..."
-            sleep 2
-          done
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Import database
-        env:
-          MYSQL_PWD: root
+      - name: Set Up PHP and Start Server
         run: |
-          mysql -h 127.0.0.1 -u root quiz_pengupil < db/quiz_pengupil.sql
+          sudo apt update
+          sudo apt install -y php php-cli php-mysql
+          php -S 127.0.0.1:8000 -t . &  # Jalankan server PHP di root proyek
+          sleep 10  # Tunggu 10 detik agar server siap
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Set Up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: "3.12"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
-          pip install selenium webdriver-manager
+          python -m pip install --upgrade pip
+          pip install selenium webdriver-manager pytest
 
-      - name: Start Chrome WebDriver
+      - name: Start Selenium WebDriver (Chrome)
         run: |
           sudo apt update
           sudo apt install -y google-chrome-stable
-          wget https://chromedriver.storage.googleapis.com/$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE)/chromedriver_linux64.zip
-          unzip chromedriver_linux64.zip
-          sudo mv chromedriver /usr/local/bin/
 
-      - name: Run empty
-        run: test_empty_login.py
+      - name: Run Selenium Tests
+        run: python test.py
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-test-results
+          path: test-results/
+
+      - name: Upload Test Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-test-logs
+          path: test-results/test_log.txt
